@@ -53,7 +53,7 @@
 ;;;; changing the x-value of a tile will update the canvas.
 ;;;;---------------------------------------------------------------------
 
-(define default-maximum-fps 60)
+(define default-maximum-fps 1000)
 (define fps-refresh-time 1000)
 (define ignore-held-key #t)
 (define default-background-colour "black")

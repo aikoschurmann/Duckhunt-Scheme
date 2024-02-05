@@ -1,8 +1,20 @@
-#lang r5rs
-(#%require "framework/vec2D.rkt")
-(#%require "framework/position.rkt")
-(#%require "framework/bird.rkt")
+(#%require "Graphics.rkt")
+(#%require (only racket random error))
 
-(define bird (bird::new 'pigeon 1 (position::new 0 0) (vec2D::new 1 1)))
-(define test-position (position::new 1 2))
-(define test-vector (vec2D::new 3 4))
+(load "constants.rkt")
+
+(load "point2D.rkt")
+(load "vec2D.rkt")
+
+(load "bird.rkt")
+(load "gun.rkt")
+
+(load "engine.rkt")
+
+(load "game.rkt")
+(load "game-mode-selector.rkt")
+(load "gamemodes/main-game-mode.rkt")
+
+
+(define game (game::new))
+(game 'start!)
