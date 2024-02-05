@@ -1,56 +1,15 @@
 (#%require (only racket random error))
-;Code duplication between vec2D and point2D is staggering.
-;In this OOP approach it's unclear to me on how to mitigate this.
-
 ;Functional wrappers for dispatch calls.
-;Dispatcher uses (message . args) to simplify this further.
-; - Prefix notation is achieved.
+;Dispatcher uses (message . args) to simplify this.
 ; - Simplifies 'OOP use'
 ; - Argument handling is done by procedure definitions.
 
-
 ; V1  ((vec1 'vec2D::equal?) vec2)
-;     gets mapped to
-; V2  (vec2D::equal? vec1 vec2)
-;     however dispatcher calls are still available (simplified due to (message . args))
-; V3  (vec1 'vec2D::equal? vec2)
+;     gets mapped to due to (message . args)
+; V2  (vec1 'vec2D::equal? vec2)
 
-;     codebase will use V2 OUTSIDE of the implementations.
 ;     V1 isn't valid syntax for this implementation due to (message . args)
 
-
-(define (vec2D::x vec1)
-  (vec1 'vec2D::x))
-(define (vec2D::y vec1)
-  (vec1 'vec2D::y))
-(define (vec2D::x! vec1 new_x)
-  (vec1 'vec2D::x! new_x))
-(define (vec2D::y! vec1 new_y)
-  (vec1 'vec2D::y! new_y))
-(define (vec2D::flip-x! vec1)
-  (vec1 'vec2D::flip-x!))
-(define (vec2D::flip-y! vec1)
-  (vec1 'vec2D::flip-y!))
-(define (vec2D::equal? vec1 vec2)
-  (vec1 'vec2D::equal? vec2))
-(define (vec2D::+! vec1 vec2)
-  (vec1 'vec2D::+! vec2))
-(define (vec2D::-! vec1 vec2)
-  (vec1 'vec2D::-! vec2))
-(define (vec2D::*! vec1 constant)
-  (vec1 'vec2D::*! constant))
-(define (vec2D::magnitude vec1)
-  (vec1 'vec2D::magnitude))
-(define (vec2D::distance-sqr vec1 vec2)
-  (vec1 'vec2D::distance-sqr vec2))
-(define (vec2D::distance vec1 vec2)
-  (vec1 'vec2D::distance vec2))
-(define (vec2D::normalize! vec1)
-  (vec1 'vec2D::normalize!))
-(define (vec2D::rotate! vec1 theta)
-  (vec1 'vec2D::rotate! theta))
- (define (vec2D::copy vec1)
-  (vec1 'vec2D::copy))
 
 ;Not in the dispatcher because this procedure doesn't need a predifined vector.
 (define (vec2D::get_normalised_vec point1 point2)
@@ -59,8 +18,6 @@
                          (- (point2 'point2D::y) (point1 'point2D::y)))))
     (vec 'vec2D::normalize!)
     vec))
-
-(define pi 3.14159265358979)
 
 (define (vec2D::new x y)
   ;Constructor for creating a new Vec2D.

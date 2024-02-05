@@ -1,36 +1,14 @@
-;Code duplication between point2D and vec2D is staggering.
-;In this OOP approach it's unclear to me on how to mitigate this.
-
 ;Functional wrappers for dispatch calls.
-;Dispatcher uses (message . args) to simplify this further.
-; - Prefix notation is achieved.
+;Dispatcher uses (message . args) to simplify this.
 ; - Simplifies 'OOP use'
 ; - Argument handling is done by procedure definitions.
 
-
 ; V1  ((vec1 'vec2D::equal?) vec2)
-;     gets mapped to
-; V2  (vec2D::equal? vec1 vec2)
-;     however dispatcher calls are still available (simplified due to (message . args))
-; V3  (vec1 'vec2D::equal? vec2)
+;     gets mapped to due to (message . args)
+; V2  (vec1 'vec2D::equal? vec2)
 
-;     codebase will use V2 OUTSIDE of the implementations.
 ;     V1 isn't valid syntax for this implementation due to (message . args)
 
-(define (point2D::x point1)
-  (point1 'point2D::x))
-(define (point2D::y point1)
-  (point1 'point2D::y))
-(define (point2D::x! point1 new_x)
-  (point1 'point2D::x! new_x))
-(define (point2D::y! point1 new_y)
-  (point1 'point2D::y! new_y))
-(define (point2D::equal? point1 point2)
-  (point1 'point2D::equal? point2))
-(define (point2D::+! point1 vec)
-  (point1 'point2D::+! vec))
-(define (point2D::-! point1 vec)
-  (point1 'point2D::-! vec))
 
 (define (point2D::new x y)
   (define (point2D::x args)
