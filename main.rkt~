@@ -1,0 +1,7 @@
+#lang r5rs
+(#%require "framework/vec2D.rkt")
+(#%require "framework/position.rkt")
+
+
+(define test-position (position::new 1 2))
+(define test-vector (vec2D::new 3 4))
