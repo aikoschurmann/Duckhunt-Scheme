@@ -12,7 +12,10 @@
 (load "engine.rkt")
 
 (load "game.rkt")
+
 (load "game-mode-selector.rkt")
+(load "input.rkt")
+
 (load "gamemodes/main-game-mode.rkt")
 
 

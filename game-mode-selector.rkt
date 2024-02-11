@@ -7,7 +7,6 @@
     (set! active-game-mode game-mode))   
 
   (define (game-mode-selector::get-draw-update)
-    
     (main-game-mode 'game-mode::get-draw-update))
 
   (define (game-mode-selector::get-logic-update)

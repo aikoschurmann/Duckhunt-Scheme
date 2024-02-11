@@ -13,10 +13,11 @@
     (engine 'engine::new-bird 'duck bird-position2 bird-vector2))
 
   (define (draw-update) 
-      (engine 'engine::render-ducks))
+      (engine 'engine::render-birds))
 
   (define (logic-update dt) 
-      (engine 'engine::update-ducks dt))
+      (engine 'engine::update-birds dt)
+      )
 
   (define (dispatch-game-mode message . args)
     (cond ((eq? message 'game-mode::init) (init))
@@ -24,5 +25,3 @@
           ((eq? message 'game-mode::get-logic-update) logic-update)
           (else (error "game-mode ADT unkown message" message))))
   dispatch-game-mode)
-
-

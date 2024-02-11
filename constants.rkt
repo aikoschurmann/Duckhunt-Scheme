@@ -6,6 +6,7 @@
 (define unscaled-bird-height 32)
 (define bird-width (* unscaled-bird-width scale))
 (define bird-height (* unscaled-bird-height scale))
+;time between animations
 (define bird-frame-time 100)
 (define screen-width (* bird-width 14))
 (define screen-height (* bird-width 8))

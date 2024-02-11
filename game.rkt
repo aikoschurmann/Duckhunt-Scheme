@@ -1,12 +1,17 @@
 (define (game::new)
  (let* ((engine (engine::new screen-width screen-height))
-       (game-mode-selector (game-mode-selector::new 'test engine)))
+        (game-mode-selector (game-mode-selector::new 'test engine))
+        (input (input::new engine)))
   
   (define (start!)
     (let ((draw-update (game-mode-selector 'get-draw-update))
-         (logic-update (game-mode-selector 'get-logic-update)))
+          (logic-update (game-mode-selector 'get-logic-update))
+          (key-update (input 'input::get-input-update)))
+
+           ;fix syntax !!!
            (engine::initialise-draw-callback! engine draw-update)
-           (engine::initialise-update-callback! engine logic-update)))
+           (engine::initialise-update-callback! engine logic-update)
+           (engine::initialise-key-callback! engine key-update)))
   
   (define (dispatch-game message . args)
     (cond ((eq? message 'test) args)
