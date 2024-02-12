@@ -4,19 +4,17 @@
   (engine 'engine::initialise-draw-callback! fun))
 (define (engine::initialise-key-callback! engine fun)
   (engine 'engine::initialise-key-callback! fun))
+(define (engine::initialise-mouse-move-callback! engine fun)
+  (engine 'engine::initialise-mouse-move-callback! fun))
 
 (define (engine::new width height)
-  (let ((window (make-window width height "Duck Hunt")))
+  (let ((window (make-window width height "Duck Hunt")) 
+        (input (input::new)))
   
     ;actively rendered birds (list because it dynamically grows and shrinks)
     (define active-birds '())
     (define bird-layer ((window 'new-layer!)))
-
-    ;engine input states
-    ;move to input ADT
-    (define key-down-list '())
-    (define key-up-list '())
-    (define key-pressed-list '())
+    
 
     ;useless crap
     (define (engine::set-background-colour! args)
@@ -37,8 +35,12 @@
       (let ((function (car args)))
         ((window 'set-key-callback!) function)))
 
+    (define (engine::initialise-mouse-move-callback! args)
+      (let ((function (car args)))
+        ((window 'set-mouse-move-callback!) function)))
+
     ;makes duck object and bitmap animation, stores them together and adds them to the active birds list
-    ;TODO make generic
+    ;TODO: make generic
     (define (engine::new-duck duck-position duck-vector)
       (let* ((duck (bird::new 'duck 1 duck-position duck-vector 6))
              (duck-tile-1 (make-bitmap-tile "duck/duck1.png" "duck/duck1mask.png"))
@@ -99,36 +101,18 @@
             (bird-vector (caddr args)))
         (cond ((eq? type 'duck) (engine::new-duck bird-position bird-vector)))))
 
-    (define (engine::key-down-list! args)
-      (let ((list (car args)))
-        (set! key-down-list list)))
 
-    (define (engine::key-up-list! args)
-      (let ((list (car args)))
-        (set! key-up-list list)))
-
-    (define (engine::key-pressed-list! args)
-      (let ((list (car args)))
-        (set! key-pressed-list list)))
 
     (define (dispatch-engine message . args)
       (cond ((eq? message 'engine::set-background-colour!) (engine::set-background-colour! args))
             ((eq? message 'engine::initialise-update-callback!) (engine::initialise-update-callback! args))
             ((eq? message 'engine::initialise-draw-callback!) (engine::initialise-draw-callback! args))
             ((eq? message 'engine::initialise-key-callback!) (engine::initialise-key-callback! args))
+            ((eq? message 'engine::initialise-mouse-move-callback!) (engine::initialise-mouse-move-callback! args))
             ((eq? message 'engine::start!) (engine::start!))
             ((eq? message 'engine::new-bird) (engine::new-bird args))
             ((eq? message 'engine::render-birds) (engine::render-birds))
             ((eq? message 'engine::update-birds) (engine::update-birds args))
-
-            ;input depricated
-            ((eq? message 'engine::key-down-list) key-down-list)
-            ((eq? message 'engine::key-up-list) key-down-list)
-            ((eq? message 'engine::key-pressed-list) key-pressed-list)
-
-            ((eq? message 'engine::key-down-list!) (engine::key-down-list! args))
-            ((eq? message 'engine::key-up-list!) (engine::key-up-list! args))
-            ((eq? message 'engine::key-pressed-list!) (engine::key-pressed-list! args))
-
+            ((eq? message 'engine::input) input)
             (else (error "engine ADT unknown message: " message))))
     dispatch-engine))
