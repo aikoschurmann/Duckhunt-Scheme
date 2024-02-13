@@ -6,6 +6,8 @@
   (engine 'engine::initialise-key-callback! fun))
 (define (engine::initialise-mouse-move-callback! engine fun)
   (engine 'engine::initialise-mouse-move-callback! fun))
+(define (engine::initialise-mouse-click-callback! engine fun)
+  (engine 'engine::initialise-mouse-click-callback! fun))
 
 (define (engine::new width height)
   (let ((window (make-window width height "Duck Hunt")) 
@@ -38,6 +40,10 @@
     (define (engine::initialise-mouse-move-callback! args)
       (let ((function (car args)))
         ((window 'set-mouse-move-callback!) function)))
+
+    (define (engine::initialise-mouse-click-callback! args)
+      (let ((function (car args)))
+        ((window 'set-mouse-click-callback!) function)))
 
     ;makes duck object and bitmap animation, stores them together and adds them to the active birds list
     ;TODO: make generic
@@ -109,6 +115,7 @@
             ((eq? message 'engine::initialise-draw-callback!) (engine::initialise-draw-callback! args))
             ((eq? message 'engine::initialise-key-callback!) (engine::initialise-key-callback! args))
             ((eq? message 'engine::initialise-mouse-move-callback!) (engine::initialise-mouse-move-callback! args))
+            ((eq? message 'engine::initialise-mouse-click-callback!) (engine::initialise-mouse-click-callback! args))
             ((eq? message 'engine::start!) (engine::start!))
             ((eq? message 'engine::new-bird) (engine::new-bird args))
             ((eq? message 'engine::render-birds) (engine::render-birds))

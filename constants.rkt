@@ -1,6 +1,6 @@
 (define pi 3.14159265358979)
 
-(define scale 3)
+(define scale 2)
 (define unscaled-bird-width 32)
 ;technically has a height of 33 px
 (define unscaled-bird-height 32)

@@ -1,22 +1,19 @@
-(define bird-position (point2D::new (/ screen-width 2) (/ screen-height 2)))
-(define bird-position2 (point2D::new (/ screen-width 2) (/ screen-height 2)))
-
-;50 * 4 = 200 meaning vx = 200px / s 
-;40 * 4 = 160 meaning vy = 160px / s 
-(define bird-vector (vec2D::new 50 40))
-(define bird-vector2 (vec2D::new 60 40))
-
-
 (define (main-game-mode::new engine)
   (let ((input (engine 'engine::input)))
-    (define (init)
-      (engine 'engine::new-bird 'duck bird-position bird-vector)
-      (engine 'engine::new-bird 'duck bird-position2 bird-vector2))
+    (define (init) 0)
   
     (define (draw-update) 
         (engine 'engine::render-birds))
   
     (define (logic-update dt) 
+        ;code to add duck upon clicking d
+        (if (input 'input::key-pressed? #\d)
+          (let* ((location (input 'input::mouse-location))
+                 (point (point2D::new (car location) (cdr location)))
+                 (direction-vector (vec2D::random-unit-vector)))
+            (direction-vector 'vec2D::*! 50)
+            (engine 'engine::new-bird 'duck point direction-vector)))
+        
         (engine 'engine::update-birds dt)
         (input 'input::reset!))
   

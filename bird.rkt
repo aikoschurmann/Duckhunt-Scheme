@@ -44,21 +44,20 @@
     (if (not (bird::dead?))
         ;dx is a displacement factor proportional to dt and speed of the bird.
         (let ((dx (* (/ (car args) 1000) speed))
-              (temp-vector (vector 'vec2D::copy))
-              (temp-position (position 'point2D::copy)))
+              (temp-vector (vector 'vec2D::copy)))
           (temp-vector 'vec2D::*! dx)
-          (temp-position 'point2D::+! temp-vector)
+          (position 'point2D::+! temp-vector)
 
-          (define (top) (- (temp-position 'point2D::y) correction-height))
-          (define (left) (- (temp-position 'point2D::x) correction-width))
-          (define (bottom) (+ (temp-position 'point2D::y) correction-height unscaled-bird-height))
-          (define (right) (+ (temp-position 'point2D::x) correction-width unscaled-bird-width))
+          (define (top) (- (position 'point2D::y) correction-height))
+          (define (left) (- (position 'point2D::x) correction-width))
+          (define (bottom) (+ (position 'point2D::y) correction-height unscaled-bird-height))
+          (define (right) (+ (position 'point2D::x) correction-width unscaled-bird-width))
 
-          (cond ((< (top) 0) (vector 'vec2D::flip-y!))                       ; out of bounds left
-                ((< (left) 0) (vector 'vec2D::flip-x!))                      ; out of bounds top
-                ((> (right) screen-width) (vector 'vec2D::flip-x!))          ; out of bounds right
-                ((> (bottom) screen-height) (vector 'vec2D::flip-y!))        ; out of bounds bottom 
-                (else (set! position temp-position))))))                     ; within bounds -> move
+          (cond ((< (top) 0) (if (< (vector 'vec2D::y) 0) (vector 'vec2D::flip-y!)))                       ; out of bounds left
+                ((< (left) 0) (if (< (vector 'vec2D::x) 0) (vector 'vec2D::flip-x!)))                      ; out of bounds top
+                ((> (right) screen-width) (if (> (vector 'vec2D::x) 0) (vector 'vec2D::flip-x!)))          ; out of bounds right
+                ((> (bottom) screen-height) (if (>= (vector 'vec2D::y) 0) (vector 'vec2D::flip-y!)))))))   ; out of bounds bottom 
+                                                  
 
   (define (dispatch-bird message . args)
     (cond ((eq? message 'bird::type) type)

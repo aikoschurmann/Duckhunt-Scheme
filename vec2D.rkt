@@ -19,6 +19,13 @@
     (vec 'vec2D::normalize!)
     vec))
 
+(define (vec2D::random-unit-vector)
+  ;Generate a random unit vector.
+  (let ((angle (* 2 3.14 (random)))) 
+    (let ((x (cos angle)) 
+          (y (sin angle))) 
+      (vec2D::new x y))))
+
 (define (vec2D::new x y)
   ;Constructor for creating a new Vec2D.
   ;Usage: (define my-vector (vec2D::new 1 2))
@@ -94,6 +101,7 @@
   (define (vec2D::copy)
     ;Creates a copy of the given vector
      (vec2D::new x y))
+
 
   (define (dispatch-vector message . args)
     ;Message dispatcher for vector operations.

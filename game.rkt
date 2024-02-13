@@ -7,13 +7,15 @@
            (logic-update (game-mode-selector 'get-logic-update))
            (input (engine 'engine::input))
            (key-update (input 'input::get-key-callback))
-           (mouse-move-update (input 'input::get-mouse-move-callback)))
+           (mouse-move-update (input 'input::get-mouse-move-callback))
+           (mouse-click-update (input 'input::get-mouse-click-callback)))
 
-             ;fix syntax !!!
+             ;TODO: fix syntax !!!
              (engine::initialise-draw-callback! engine draw-update)
              (engine::initialise-update-callback! engine logic-update)
              (engine::initialise-key-callback! engine key-update)
-             (engine::initialise-mouse-move-callback! engine mouse-move-update)))
+             (engine::initialise-mouse-move-callback! engine mouse-move-update)
+             (engine::initialise-mouse-click-callback! engine mouse-click-update)))
   
   (define (dispatch-game message . args)
     (cond ((eq? message 'test) args)
