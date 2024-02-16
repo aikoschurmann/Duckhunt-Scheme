@@ -12,10 +12,13 @@
 (define (engine::new width height)
   (let ((window (make-window width height "Duck Hunt")) 
         (input (input::new)))
-  
+
+    (define internal-time 0)
+
     ;actively rendered birds (list because it dynamically grows and shrinks)
     (define active-birds '())
     (define bird-layer ((window 'new-layer!)))
+    (define ui-layer ((window 'new-layer!)))
     
 
     ;useless crap
@@ -57,6 +60,18 @@
         (set! active-birds (cons new-duck active-birds))
         ((duck-animation 'set-scale!) scale)
         ((bird-layer 'add-drawable!) duck-animation)))
+
+    (define (engine::next-duck-animation! args)
+      (let ((bird (car args)))
+        ((bird-layer 'remove-drawable!) (cdr bird))
+        (let* ((duck-tile-4 (make-bitmap-tile "duck/duck4.png" "duck/duck4mask.png"))
+               (duck-tile-5 (make-bitmap-tile "duck/duck5.png" "duck/duck5mask.png"))
+               (duck-animation (make-tile-sequence (list duck-tile-4 duck-tile-5))))
+          ((duck-animation 'set-scale!) scale)
+          (set-cdr! bird duck-animation)
+          ((bird-layer 'add-drawable!) duck-animation))))
+
+
       
     (define (engine::render-bird bird)
       (let ((bird-object (car bird))
@@ -107,7 +122,23 @@
             (bird-vector (caddr args)))
         (cond ((eq? type 'duck) (engine::new-duck bird-position bird-vector)))))
 
+    (define (engine::update-internal-time! args)
+      (let ((dt (car args)))
+        (set! internal-time (+ internal-time dt))))
 
+    (define (engine::active-birds! args)
+      (let ((list (car args)))
+        (set! active-birds list)))
+
+    (define (engine::collision? args)
+      (let ((tile (car args))
+            (point (cadr args)))
+            (if (and (>= (point 'point2D::x) (location 'point2D::x))
+                   (<= (point 'point2D::x) (+ (location 'point2D::x) (tile 'get-w)))
+                   (>= (point 'point2D::y) (location 'point2D::y))
+                   (<= (point 'point2D::Y) (+ (location 'point2D::y) (tile 'get-h))))
+                   #t
+                   #f)))
 
     (define (dispatch-engine message . args)
       (cond ((eq? message 'engine::set-background-colour!) (engine::set-background-colour! args))
@@ -121,5 +152,13 @@
             ((eq? message 'engine::render-birds) (engine::render-birds))
             ((eq? message 'engine::update-birds) (engine::update-birds args))
             ((eq? message 'engine::input) input)
+            ((eq? message 'engine::ui-layer) ui-layer)
+            ((eq? message 'engine::bird-layer) bird-layer)
+            ((eq? message 'engine::active-birds) active-birds)
+            ((eq? message 'engine::active-birds!) (engine::active-birds! args))
+            ((eq? message 'engine::internal-time) internal-time)
+            ((eq? message 'engine::update-internal-time!) (engine::update-internal-time! args))
+            ((eq? message 'engine::next-duck-animation!) (engine::next-duck-animation! args))
+            ((eq? message 'engine::collision?) (engine::collision? args))
             (else (error "engine ADT unknown message: " message))))
     dispatch-engine))

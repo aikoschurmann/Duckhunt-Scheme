@@ -9,6 +9,7 @@
 
 (load "bird.rkt")
 (load "gun.rkt")
+(load "rect.rkt")
 
 (load "engine.rkt")
 
@@ -17,6 +18,7 @@
 (load "game-mode-selector.rkt")
 
 (load "gamemodes/main-game-mode.rkt")
+
 
 
 (define game (game::new))

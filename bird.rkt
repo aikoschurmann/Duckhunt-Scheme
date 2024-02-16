@@ -15,6 +15,8 @@
   (define right? #f)
   (define correction-height (* (/ (- scale 1) 2) unscaled-bird-height))
   (define correction-width (* (/ (- scale 1) 2) unscaled-bird-width))
+  (define hasDied? #f)
+  (define fall-vector (vec2D::new 0 fall-speed))
 
   (define (bird::decrease-health! args)
     (let ((dhealth (car args)))
@@ -40,6 +42,9 @@
   (define (bird::dead?)
     (<= health 0))
 
+  (define (center) (point2D::new (+ (position 'point2D::x) (/ unscaled-bird-width 2)) 
+                                 (+ (position 'point2D::y) (/ unscaled-bird-height 2))))
+  
   (define (bird::move! args)
     (if (not (bird::dead?))
         ;dx is a displacement factor proportional to dt and speed of the bird.
@@ -52,13 +57,20 @@
           (define (left) (- (position 'point2D::x) correction-width))
           (define (bottom) (+ (position 'point2D::y) correction-height unscaled-bird-height))
           (define (right) (+ (position 'point2D::x) correction-width unscaled-bird-width))
+          
 
           (cond ((< (top) 0) (if (< (vector 'vec2D::y) 0) (vector 'vec2D::flip-y!)))                       ; out of bounds left
                 ((< (left) 0) (if (< (vector 'vec2D::x) 0) (vector 'vec2D::flip-x!)))                      ; out of bounds top
                 ((> (right) screen-width) (if (> (vector 'vec2D::x) 0) (vector 'vec2D::flip-x!)))          ; out of bounds right
-                ((> (bottom) screen-height) (if (>= (vector 'vec2D::y) 0) (vector 'vec2D::flip-y!)))))))   ; out of bounds bottom 
+                ((> (bottom) screen-height) (if (>= (vector 'vec2D::y) 0) (vector 'vec2D::flip-y!)))))     ; out of bounds bottom 
+                
+        (let ((dx (* (/ (car args) 1000) speed))
+              (temp-vector (fall-vector 'vec2D::copy)))
+            (temp-vector 'vec2D::*! dx)
+            (position 'point2D::+! temp-vector))))   
                                                   
-
+  (define (bird::hasDied!)
+    (set! hasDied? #t))
   (define (dispatch-bird message . args)
     (cond ((eq? message 'bird::type) type)
           ((eq? message 'bird::health) health)
@@ -72,5 +84,8 @@
           ((eq? message 'bird::update) (bird::update args))
           ((eq? message 'bird::nextframe?) nextframe?)
           ((eq? message 'bird::right?) right?)
+          ((eq? message 'bird::pos-center) (center))
+          ((eq? message 'bird::hasDied?) hasDied?)
+          ((eq? message 'bird::hasDied!) (bird::hasDied!))
           (else (error "bird ADT unkown message" message))))
   dispatch-bird)

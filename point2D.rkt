@@ -33,6 +33,16 @@
     (let ((vec (car args)))
       (set! x (- x (vec 'vec2D::x)))
       (set! y (- y (vec 'vec2D::y)))))
+
+  (define (point2D::distance-sqr args)
+    (let* ((point (car args))
+          (delta-x (- x (point 'point2D::x)))
+          (delta-y (- y (point 'point2D::y))))
+      (+ (* delta-x delta-x) (* delta-y delta-y))))
+
+  (define (point2D::distance args)
+    (sqrt (point2D::distance-sqr args)))
+      
   (define (point2D::copy)
     ;Creates a copy of the given point
      (point2D::new x y))
@@ -45,6 +55,8 @@
           ((eq? message 'point2D::equal?) (point2D::equal? args))
           ((eq? message 'point2D::+!) (point2D::+! args))
           ((eq? message 'point2D::-!) (point2D::-! args))
+          ((eq? message 'point2D::distance-sqr) (point2D::distance-sqr args))
+          ((eq? message 'point2D::distance) (point2D::distance args))
           ((eq? message 'point2D::copy) (point2D::copy))
 
           (else (error "point2D ADT unkown message" message))))
