@@ -19,6 +19,8 @@
 
 (load "gamemodes/main-game-mode.rkt")
 
+(define crosshair (make-bitmap-tile "crosshair.png" "crosshair_mask.png"))
+
 
 
 (define game (game::new))

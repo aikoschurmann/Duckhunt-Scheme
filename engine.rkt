@@ -17,8 +17,15 @@
 
     ;actively rendered birds (list because it dynamically grows and shrinks)
     (define active-birds '())
+
     (define bird-layer ((window 'new-layer!)))
+    (define scenery-layer ((window 'new-layer!)))
+
     (define ui-layer ((window 'new-layer!)))
+
+    (define score 0)
+    (define lives 3)
+    
     
 
     ;useless crap
@@ -50,8 +57,8 @@
 
     ;makes duck object and bitmap animation, stores them together and adds them to the active birds list
     ;TODO: make generic
-    (define (engine::new-duck duck-position duck-vector)
-      (let* ((duck (bird::new 'duck 1 duck-position duck-vector 6))
+    (define (engine::new-duck duck-position duck-vector score)
+      (let* ((duck (bird::new 'duck 1 duck-position duck-vector 6 score))
              (duck-tile-1 (make-bitmap-tile "duck/duck1.png" "duck/duck1mask.png"))
              (duck-tile-2 (make-bitmap-tile "duck/duck2.png" "duck/duck2mask.png"))
              (duck-tile-3 (make-bitmap-tile "duck/duck3.png" "duck/duck3mask.png"))
@@ -120,7 +127,7 @@
       (let ((type (car args))
             (bird-position (cadr args))
             (bird-vector (caddr args)))
-        (cond ((eq? type 'duck) (engine::new-duck bird-position bird-vector)))))
+        (cond ((eq? type 'duck) (engine::new-duck bird-position bird-vector 100)))))
 
     (define (engine::update-internal-time! args)
       (let ((dt (car args)))
@@ -133,12 +140,26 @@
     (define (engine::collision? args)
       (let ((tile (car args))
             (point (cadr args)))
-            (if (and (>= (point 'point2D::x) (location 'point2D::x))
-                   (<= (point 'point2D::x) (+ (location 'point2D::x) (tile 'get-w)))
-                   (>= (point 'point2D::y) (location 'point2D::y))
-                   (<= (point 'point2D::Y) (+ (location 'point2D::y) (tile 'get-h))))
+              (define correction-height (* (/ (- scale 1) 2) (tile 'get-h)))
+              (define correction-width (* (/ (- scale 1) 2) (tile 'get-w)))
+              (define (top) (- (tile 'get-y) correction-height))
+              (define (left) (- (tile 'get-x) correction-width))
+              (define (bottom) (+ (tile 'get-y) correction-height (tile 'get-h)))
+              (define (right) (+ (tile 'get-x) correction-width (tile 'get-w)))
+
+            (if (and (>= (point 'point2D::x) (left))
+                   (<= (point 'point2D::x) (right))
+                   (>= (point 'point2D::y) (top))
+                   (<= (point 'point2D::y) (bottom)))
                    #t
                    #f)))
+
+    (define (engine::remove-live!)
+      (set! lives (- lives 1)))
+
+    (define (engine::add-score! args)
+      (let ((score_add (car args)))
+        (set! score (+ score score_add))))
 
     (define (dispatch-engine message . args)
       (cond ((eq? message 'engine::set-background-colour!) (engine::set-background-colour! args))
@@ -154,9 +175,14 @@
             ((eq? message 'engine::input) input)
             ((eq? message 'engine::ui-layer) ui-layer)
             ((eq? message 'engine::bird-layer) bird-layer)
+            ((eq? message 'engine::scenery-layer) scenery-layer)
             ((eq? message 'engine::active-birds) active-birds)
             ((eq? message 'engine::active-birds!) (engine::active-birds! args))
             ((eq? message 'engine::internal-time) internal-time)
+            ((eq? message 'engine::lives) lives)
+            ((eq? message 'engine::remove-live!) (engine::remove-live!))
+            ((eq? message 'engine::score) score)
+            ((eq? message 'engine::add-score!) (engine::add-score! args))
             ((eq? message 'engine::update-internal-time!) (engine::update-internal-time! args))
             ((eq? message 'engine::next-duck-animation!) (engine::next-duck-animation! args))
             ((eq? message 'engine::collision?) (engine::collision? args))

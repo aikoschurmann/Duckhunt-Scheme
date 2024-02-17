@@ -1,6 +1,6 @@
 (define pi 3.14)
 (define scale 2)
-(define ui-scale 2)
+(define ui-scale scale)
 (define unscaled-bird-width 32)
 ;technically has a height of 33 px
 (define unscaled-bird-height 32)
@@ -12,3 +12,5 @@
 (define screen-width (* bird-width 14))
 (define screen-height (* bird-width 8))
 (define fall-speed  (* 30 scale))
+(define max-bounces 5)
+(define border-radius 100)

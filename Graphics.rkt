@@ -676,10 +676,10 @@
         ;; Moving and dimension and position getters.
         ((eq? msg 'set-x!) set-x!)
         ((eq? msg 'set-y!) set-y!)
-        ((eq? msg 'get-x) (lambda () ((current) 'get-x)))
-        ((eq? msg 'get-y) (lambda () ((current) 'get-y)))
-        ((eq? msg 'get-w) (lambda () ((current) 'get-w)))
-        ((eq? msg 'get-h) (lambda () ((current) 'get-h)))
+        ((eq? msg 'get-x) ((lambda () ((current) 'get-x))))
+        ((eq? msg 'get-y) ((lambda () ((current) 'get-y))))
+        ((eq? msg 'get-w) ((lambda () ((current) 'get-w))))
+        ((eq? msg 'get-h) ((lambda () ((current) 'get-h))))
         
         ;; Animations to switch between tiles
         ((eq? msg 'set-current!) set-current!)
