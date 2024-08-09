@@ -1,0 +1,204 @@
+(define (main-game-mode::new engine)
+  (let ((input (engine 'engine::input))
+        (round-manager (round-manager::new))
+        (air-gun (gun::new 'air-gun 1 (* 20 scale) 500 -1 #f))
+        (boom-gun (gun::new 'boom-gun 1 (* 50 scale) 10000 -1 #t)))
+
+    (define crosshair (make-bitmap-tile "sprites/crosshair/crosshair1.png" "sprites/crosshair/crosshair1mask.png"))
+
+    (define score-tile (make-tile 100 100))
+    (define life-tile (make-tile 100 100))
+    (define cooldown-tile (make-tile 100 100))
+    (define cooldown-tile-background (make-tile 100 100))
+
+    
+    (define tree (make-bitmap-tile "sprites/tree/tree1.png" "sprites/tree/tree1mask.png"))
+
+    (define gun-switcher (vector air-gun boom-gun))
+    (define active-gun-index 1)
+
+
+    ;since scaling happens around the center you have to correct
+    (define (set-tile! tile x y) 
+      (let ((correction-x (* (/ (- scale 1) 2) (tile 'get-w)))
+            (correction-y (* (/ (- scale 1) 2) (tile 'get-h)))) 
+        ((tile 'set-x!) (+ x correction-x))
+        ((tile 'set-y!) (+ y correction-y))))
+
+    (define (add-tiles-horizontal! path mask layer n)
+      (define (add-tile i)
+        (if (< i n)
+          (let* ((tile (make-bitmap-tile path mask))
+                 (x (* i (tile 'get-w) ui-scale))
+                 (y (- screen-height (* (tile 'get-h) ui-scale))))
+            (((engine layer) 'add-drawable!) tile)
+            ((tile 'set-scale!) ui-scale)
+            (set-tile! tile x y)
+            (add-tile (+ i 1)))))
+      (add-tile 0))
+
+    (define (draw-obstacles)
+      (let ((obstacle-list (round-manager 'round-manager::get-obstacles)))
+        (define (draw-obstacle list)
+          (if (not (null? list))
+              (let* ((current-obstacle (car list))
+                    (tile (vector-ref current-obstacle 0))
+                    (x (vector-ref current-obstacle 1))
+                    (y (vector-ref current-obstacle 2)))
+
+                ((tile 'set-scale!) ui-scale)
+                (set-tile! tile x y)
+                (((engine 'engine::scenery-layer) 'add-drawable!) tile)
+
+                (draw-obstacle (cdr list)))))
+        (draw-obstacle obstacle-list)))
+
+    (define (init)  
+      ((crosshair 'set-scale!) ui-scale)
+
+      (add-tiles-horizontal! "sprites/grass/grass1.png" "sprites/grass/grass1mask.png" 'engine::scenery-layer 3)
+      
+      ((score-tile 'draw-text!) "0" 16 0 0 "black")
+      (((engine 'engine::scenery-layer) 'add-drawable!) score-tile)
+
+      ((life-tile 'draw-text!) "3" 16 0 20 "black")
+      (((engine 'engine::scenery-layer) 'add-drawable!) life-tile)
+
+      ((cooldown-tile-background 'draw-rectangle!) 0 40 100 20 "gray")
+
+      (((engine 'engine::scenery-layer) 'add-drawable!) cooldown-tile)
+      (((engine 'engine::scenery-layer) 'add-drawable!) cooldown-tile-background)
+
+      (draw-obstacles)
+
+      (engine 'engine::set-background-colour! "lightblue"))
+
+    
+
+    ;TODO: improve syntax for this ENTIRE file
+
+    (define (do-damage current-bird active-gun)
+      ; (current-bird 'bird::hasDied?) checks if bird died right now
+      ; (current-bird 'bird::dead?) checks if bird was dead before
+      ; Hence we only want to execute this code if the bird just died and not when it already was
+      (let ((current-bird-adt (car current-bird))) 
+          (current-bird-adt 'bird::decrease-health! (active-gun 'gun::damage)) 
+          (if (not (and (current-bird-adt 'bird::hasDied?) (current-bird-adt 'bird::dead?)))
+                   ; makes the falling animation run 
+            (begin (engine 'engine::next-duck-animation! current-bird)
+                   (current-bird-adt 'bird::hasDied!) 
+                   (engine 'engine::add-score! (current-bird-adt 'bird::score))
+                   ((score-tile 'clear!))
+                   ((score-tile 'draw-text!) (number->string (engine 'engine::score)) 16 0 0 "black")))))
+
+    (define (do-splash-hits birds pos active-gun)
+      (if (not (null? birds))
+        (let* ((current-bird (car birds))
+               (current-bird-adt (car current-bird))
+               (bird-location (current-bird-adt 'bird::center))
+               (distance (bird-location 'point2D::distance pos)))
+          (if (< distance (active-gun 'gun::range))
+            (if (eq? (current-bird-adt 'bird::type) 'false)
+              (handle-enemy current-bird)
+              (do-damage current-bird active-gun)))
+          (do-splash-hits (cdr birds) pos active-gun))))
+
+    (define (handle-enemy current-bird)
+      (let* ((current-bird-tile (cdr current-bird)))
+        (((engine 'engine::bird-layer) 'remove-drawable!) current-bird-tile)
+        (engine 'engine::remove-live!)
+        ((life-tile 'clear!))
+        ((life-tile 'draw-text!) (number->string (engine 'engine::lives)) 16 0 20 "black")))
+
+    (define (do-hits birds pos active-gun)
+      (if (not (null? birds))
+        (let* ((current-bird (car birds))
+               (current-bird-adt (car current-bird))
+               (current-bird-tile (cdr current-bird))
+               (bird-location (current-bird-adt 'bird::center)))
+          (if (and (engine 'engine::collision? current-bird-tile pos)
+                   (or (= 2 (current-bird-adt 'bird::z-index)) 
+                       (and (= 1 (current-bird-adt 'bird::z-index)) 
+                            (not (engine 'engine::collision? tree pos)))))
+                            (if (eq? (current-bird-adt 'bird::type) 'false)
+                              (handle-enemy current-bird)
+                              (do-damage current-bird active-gun))
+
+                            (do-hits (cdr birds) pos active-gun)))))
+
+
+    (define (prune-birds list)
+      (if (null? list)    
+        '()
+        (let ((curr-bird (car (car list)))
+              (animation (cdr (car list))))
+          (if (or (< (curr-bird 'bird::top) (- border-radius)) 
+                  (< (curr-bird 'bird::left) (- border-radius)) 
+                  (> (curr-bird 'bird::right) (+ screen-width border-radius))  
+                  (> (curr-bird 'bird::bottom) (+ screen-height border-radius)))
+            (begin (((engine 'engine::bird-layer) 'remove-drawable!) animation)
+                     (prune-birds (cdr list)))
+            (cons (car list) (prune-birds (cdr list)))))))
+            
+  
+    (define (draw-update) 
+        ;code to add duck upon clicking d
+        (if (input 'input::key-pressed? #\b)
+          (let* ((location (input 'input::mouse-location)) ; get mouse location (conscell)
+                 (point (point2D::new (car location) (cdr location))) ; convert to point2D
+                 (direction-vector (vec2D::random-unit-vector))
+                 (bird (bird::new 'duck 1 point direction-vector 5 100 (random 1 3)))) ; generate random vector (len 1)
+
+            (engine 'engine::new-bird 'duck bird 3))) 
+            
+        (if (input 'input::key-pressed? #\f)
+          (let* ((location (input 'input::mouse-location)) ; get mouse location (conscell)
+                 (point (point2D::new (car location) (cdr location))) ; convert to point2D
+                 (direction-vector (vec2D::random-unit-vector))
+                 (bird (bird::new 'false 1 point direction-vector 1 100 1))) ; generate random vector (len 1)
+
+            (engine 'engine::new-bird 'bomb bird 2)))  
+
+        ;shooting code
+        ;click
+        (if (input 'input::button-down? 'left)
+          (let ((mouse-location (input 'input::mouse-location))
+                (active-birds (engine 'engine::active-birds))
+                (active-gun (vector-ref gun-switcher (modulo active-gun-index (vector-length gun-switcher)))))
+            ((crosshair 'set-x!) (- (car mouse-location) (/ (crosshair 'get-w) 2)))
+            ((crosshair 'set-y!) (- (cdr mouse-location) (/ (crosshair 'get-h) 2)))
+            (((engine 'engine::ui-layer) 'add-drawable!) crosshair)
+            ;if able to shoot
+            (if (active-gun 'gun::shoot!)
+                (if (active-gun 'gun::splash?) 
+                  (do-splash-hits (engine 'engine::active-birds) (point2D::new (car mouse-location) (cdr mouse-location)) active-gun)
+                  (do-hits (engine 'engine::active-birds) (point2D::new (car mouse-location) (cdr mouse-location)) active-gun)))))
+        
+        ;release
+        (if (input 'input::button-up? 'left)
+          (((engine 'engine::ui-layer) 'remove-drawable!) crosshair))
+
+        (engine 'engine::render-birds)
+        ;clear out of bounds birds
+        (engine 'engine::active-birds! (prune-birds (engine 'engine::active-birds)))
+        
+        ;cooldown draw
+        (let ((active-gun (vector-ref gun-switcher (modulo active-gun-index (vector-length gun-switcher)))))
+          ((cooldown-tile 'clear!))
+          ((cooldown-tile 'draw-rectangle!) 0 40 (min (* (/ (active-gun 'gun::time-until-next-shot) (active-gun 'gun::cooldown)) 100) 100) 20 "black"))
+
+        ;technically not a draw function but draw-update executes after logic-update
+        (input 'input::reset!))
+  
+    (define (logic-update dt) 
+        (let ((active-gun (vector-ref gun-switcher (modulo active-gun-index (vector-length gun-switcher)))))
+          (engine 'engine::update-internal-time! dt)
+          (engine 'engine::update-birds dt)
+          (active-gun 'gun::update! (engine 'engine::internal-time))))
+  
+    (define (dispatch-game-mode message . args)
+      (cond ((eq? message 'game-mode::init) (init))
+            ((eq? message 'game-mode::get-draw-update) draw-update)
+            ((eq? message 'game-mode::get-logic-update) logic-update)
+            (else (error "game-mode ADT unkown message" message))))
+    dispatch-game-mode))

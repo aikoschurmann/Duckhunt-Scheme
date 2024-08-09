@@ -6,10 +6,10 @@
 (load "point2D.rkt")
 (load "vec2D.rkt")
 (load "input.rkt")
+(load "math.rkt")
 
 (load "bird.rkt")
 (load "gun.rkt")
-(load "rect.rkt")
 
 (load "engine.rkt")
 
@@ -17,10 +17,9 @@
 
 (load "game-mode-selector.rkt")
 
+(load "round-manager.rkt")
+
 (load "gamemodes/main-game-mode.rkt")
-
-(define crosshair (make-bitmap-tile "crosshair.png" "crosshair_mask.png"))
-
 
 
 (define game (game::new))
